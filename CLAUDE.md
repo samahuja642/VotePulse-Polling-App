@@ -86,5 +86,15 @@ Server: express, pg, bcryptjs, jsonwebtoken, cookie-parser, cors, zod, xss, expr
 Client: react, react-dom, react-router-dom, axios, recharts, react-hook-form, @hookform/resolvers, zod, socket.io-client, react-hot-toast, lucide-react, tailwindcss
 Dev: nodemon, vitest, @testing-library/react, eslint, prettier
 
+## Theming & Styling
+Tailwind v4 CSS-first config in `client/src/index.css` — no `tailwind.config.js`.
+- Fonts: `font-sans` (Inter), `font-mono` (JetBrains Mono)
+- Colors: `primary` (indigo), `accent` (teal), `danger` (red), `success` (green), `warning` (amber) — all 50–950 scales
+- Semantic vars: `--bg`, `--bg-secondary`, `--bg-tertiary`, `--surface`, `--surface-hover`, `--border`, `--border-hover`, `--text`, `--text-secondary`, `--text-tertiary`, `--ring` — auto-switch light/dark
+- Dark mode: system default; `.dark` on `<html>` forces dark, `.light` forces light
+- Apply via: `bg-primary-600` for brand colors, `style={{ color: 'var(--text-secondary)' }}` for semantic tokens
+- Cards: `rounded-lg shadow-sm p-4`/`p-6` | Buttons/inputs: `rounded-md` | Focus: `focus:ring-2 focus:ring-[var(--ring)]`
+- Mobile-first with `sm:`/`md:`/`lg:` breakpoints, `transition-colors` on interactive elements
+
 ## Don'ts
 No ORM. No localStorage for tokens. No skipping validation. No hardcoded secrets. No unhandled expired polls.
