@@ -61,7 +61,12 @@ GET    /api/polls/:id/results      # Aggregated vote counts
 - Mobile-first responsive design with Tailwind breakpoints
 
 ## Auth Flow
-Register/Login → bcrypt hash (12 rounds) → JWT access (15min, in-memory) + refresh (7d, httpOnly cookie) → auth middleware reads Bearer token → attaches req.user → refresh endpoint rotates access token
+Register/Login → bcrypt hash (12 rounds) → JWT access (15min, in-memory) + refresh (7d, httpOnly cookie) → auth middleware reads Bearer token → attaches req.user → refresh endpoint rotates both tokens
+
+### Frontend Auth Architecture
+- `AuthContext` provides `{ user, loading, login, logout }` — wraps app in `main.jsx`
+- `ProtectedRoute` is a layout route (`<Outlet />`) in `App.jsx` — nest auth-required routes under it
+- Silent refresh: axios response interceptor catches 401s, calls `POST /auth/refresh` (deduped via shared promise), retries original request. Skips `/auth/refresh` and `/auth/login` to avoid loops.
 
 ## Real-Time
 Socket.io room per poll (`poll:<id>`). Server emits `vote:new` with updated counts on each vote. Frontend joins room on PollDetail mount, updates Recharts chart reactively. Handle disconnect/reconnect.

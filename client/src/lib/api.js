@@ -2,6 +2,11 @@ import axios from 'axios';
 import { env } from './env.js';
 
 let accessToken = null;
+let onSessionExpired = null;
+
+export const setSessionExpiredHandler = (handler) => {
+  onSessionExpired = handler;
+};
 
 export const setAccessToken = (token) => {
   accessToken = token;
@@ -20,5 +25,43 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+let refreshPromise = null;
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes('/auth/refresh') &&
+      !originalRequest.url.includes('/auth/login')
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        // Deduplicate concurrent refresh calls
+        if (!refreshPromise) {
+          refreshPromise = api.post('/auth/refresh').finally(() => {
+            refreshPromise = null;
+          });
+        }
+
+        const res = await refreshPromise;
+        accessToken = res.data.data.accessToken;
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
+      } catch {
+        accessToken = null;
+        onSessionExpired?.();
+        return Promise.reject(error);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default api;

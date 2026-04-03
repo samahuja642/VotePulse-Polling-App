@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const navLinks = [
   { to: '/explore', label: 'Explore' },
@@ -16,9 +17,7 @@ const linkClass = ({ isActive }) =>
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // TODO: replace with useAuth() in Step 2
-  const user = null;
+  const { user, logout } = useAuth();
 
   return (
     <header
@@ -43,12 +42,24 @@ export default function Navbar() {
           ))}
 
           {user ? (
-            <Link
-              to="/polls/new"
-              className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
-            >
-              New Poll
-            </Link>
+            <>
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                {user.username}
+              </span>
+              <Link
+                to="/polls/new"
+                className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+              >
+                New Poll
+              </Link>
+              <button
+                onClick={logout}
+                className="rounded-md px-4 py-1.5 text-sm font-medium transition-colors"
+                style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+              >
+                Log out
+              </button>
+            </>
           ) : (
             <Link
               to="/login"
@@ -88,13 +99,22 @@ export default function Navbar() {
           ))}
 
           {user ? (
-            <Link
-              to="/polls/new"
-              className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white text-center hover:bg-primary-700 transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
-              New Poll
-            </Link>
+            <>
+              <Link
+                to="/polls/new"
+                className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white text-center hover:bg-primary-700 transition-colors"
+                onClick={() => setMobileOpen(false)}
+              >
+                New Poll
+              </Link>
+              <button
+                onClick={() => { logout(); setMobileOpen(false); }}
+                className="rounded-md px-4 py-1.5 text-sm font-medium text-center transition-colors"
+                style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+              >
+                Log out
+              </button>
+            </>
           ) : (
             <Link
               to="/login"
