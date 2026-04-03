@@ -2,6 +2,11 @@ import axios from 'axios';
 import { env } from './env.js';
 
 let accessToken = null;
+let onSessionExpired = null;
+
+export const setSessionExpiredHandler = (handler) => {
+  onSessionExpired = handler;
+};
 
 export const setAccessToken = (token) => {
   accessToken = token;
@@ -50,6 +55,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch {
         accessToken = null;
+        onSessionExpired?.();
         return Promise.reject(error);
       }
     }

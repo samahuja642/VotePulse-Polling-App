@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { setAccessToken } from '../lib/api.js';
+import toast from 'react-hot-toast';
+import api, { setAccessToken, setSessionExpiredHandler } from '../lib/api.js';
 
 const AuthContext = createContext(null);
 
@@ -23,6 +24,16 @@ export function AuthProvider({ children }) {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Handle session expiry (refresh token failed)
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      setUser(null);
+      toast.error('Session expired. Please sign in again.');
+      navigate('/login');
+    });
+    return () => setSessionExpiredHandler(null);
+  }, [navigate]);
 
   const login = useCallback((userData, accessToken) => {
     setAccessToken(accessToken);
