@@ -18,9 +18,11 @@ votepulse/
 │   ├── config/              # db.js, env.js
 │   ├── middleware/          # auth.js, errorHandler.js, rateLimiter.js, validate.js
 │   ├── routes/              # auth.routes.js, polls.routes.js, votes.routes.js
-│   ├── controllers/         # auth.controller.js, polls.controller.js, votes.controller.js
-│   ├── validators/          # Zod schemas
+│   ├── controllers/         # HTTP layer — reads req, calls service, sends res
+│   ├── services/            # Business logic — hashing, tokens, validation rules
+│   ├── db/queries/          # Raw SQL data-access functions
 │   ├── db/migrations/       # Numbered .sql files
+│   ├── validators/          # Zod schemas
 │   └── socket/              # socket.js
 ```
 
@@ -95,6 +97,10 @@ Tailwind v4 CSS-first config in `client/src/index.css` — no `tailwind.config.j
 - Apply via: `bg-primary-600` for brand colors, `style={{ color: 'var(--text-secondary)' }}` for semantic tokens
 - Cards: `rounded-lg shadow-sm p-4`/`p-6` | Buttons/inputs: `rounded-md` | Focus: `focus:ring-2 focus:ring-[var(--ring)]`
 - Mobile-first with `sm:`/`md:`/`lg:` breakpoints, `transition-colors` on interactive elements
+
+## Migrations
+- Files: `server/src/db/migrations/NNN_description.sql` — sequential, each run in a transaction
+- Runner (`server/src/db/migrate.js`) auto-runs before `npm run dev` / `npm start` / `npm run migrate` — tracks applied files in `migrations` table, skips already-applied
 
 ## Don'ts
 No ORM. No localStorage for tokens. No skipping validation. No hardcoded secrets. No unhandled expired polls.
