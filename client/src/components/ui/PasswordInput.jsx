@@ -1,7 +1,7 @@
 import { forwardRef, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
-const PasswordInput = forwardRef(({ label, id, error, ...props }, ref) => {
+const PasswordInput = forwardRef(({ label, id, error, required, ...props }, ref) => {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -13,6 +13,8 @@ const PasswordInput = forwardRef(({ label, id, error, ...props }, ref) => {
           style={{ color: 'var(--text-secondary)' }}
         >
           {label}
+          {required === true && <span className="text-red-500"> *</span>}
+          {required === false && <span className="font-normal opacity-60"> (optional)</span>}
         </label>
       )}
       <div className="relative">

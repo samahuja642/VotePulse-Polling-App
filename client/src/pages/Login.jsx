@@ -1,43 +1,14 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { loginSchema } from '../lib/validators.js';
-import api from '../lib/api.js';
-import { useAuth } from '../context/AuthContext.jsx';
+import useLoginForm from '../hooks/useLoginForm.js';
 import Input from '../components/ui/Input.jsx';
 import PasswordInput from '../components/ui/PasswordInput.jsx';
 import Button from '../components/ui/Button.jsx';
 import FormError from '../components/ui/FormError.jsx';
 
 export default function Login() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    setError,
-  } = useForm({ resolver: zodResolver(loginSchema) });
-
-  const onSubmit = async (data) => {
-    try {
-      const res = await api.post('/auth/login', data);
-      login(res.data.data.user, res.data.data.accessToken);
-      toast.success('Welcome back!');
-      navigate('/dashboard');
-    } catch (err) {
-      const message =
-        err.response?.data?.error?.message || 'Something went wrong';
-      if (err.response?.status === 401) {
-        setError('root', { message });
-      } else {
-        toast.error(message);
-      }
-    }
-  };
+  const { form, onSubmit, meta } = useLoginForm();
+  const { register, formState: { errors, isSubmitting } } = form;
 
   return (
     <div className="flex flex-1 items-center justify-center py-10">
@@ -60,13 +31,14 @@ export default function Login() {
 
         <FormError message={errors.root?.message} />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <Input
             label="Email"
             id="email"
             type="email"
             placeholder="john@example.com"
             autoComplete="email"
+            required={meta.email}
             error={errors.email?.message}
             {...register('email')}
           />
@@ -75,6 +47,7 @@ export default function Login() {
             id="password"
             placeholder="Enter your password"
             autoComplete="current-password"
+            required={meta.password}
             error={errors.password?.message}
             {...register('password')}
           />

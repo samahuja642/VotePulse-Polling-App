@@ -107,5 +107,12 @@ Tailwind v4 CSS-first config in `client/src/index.css` — no `tailwind.config.j
 - Files: `server/src/db/migrations/NNN_description.sql` — sequential, each run in a transaction
 - Runner (`server/src/db/migrate.js`) auto-runs before `npm run dev` / `npm start` / `npm run migrate` — tracks applied files in `migrations` table, skips already-applied
 
+## Frontend Architecture Conventions
+- **Separation of concerns**: Pages are pure UI — all logic (form setup, API calls, navigation, error handling) lives in custom hooks (`hooks/use*Form.js`)
+- **Reusable UI components** in `components/ui/`: Input, Textarea, PasswordInput, Checkbox, Radio, DateTimePicker, Button, FormError, AppendReorderList, SortableItem
+- **Schema-driven required/optional**: `getFieldMeta(schema)` in `lib/formUtils.js` introspects Zod schema via `safeParse(undefined)` — returns `{ field: true/false }`. Hooks compute `meta` at module level, pages pass `required={meta.fieldName}` to components. Components show red `*` if `true`, "(optional)" if `false`.
+- **Validation error mapping**: Server 422 responses with `details: [{ path, message }]` are mapped to per-field errors via `form.setError(path)`. Errors without a path go to `root`.
+- **Dates**: Client sends ISO strings, server stores as `TIMESTAMPTZ` (UTC). All timezone handling is implicit via PostgreSQL.
+
 ## Don'ts
 No ORM. No localStorage for tokens. No skipping validation. No hardcoded secrets. No unhandled expired polls.
