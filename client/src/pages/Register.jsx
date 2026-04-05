@@ -1,43 +1,14 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { registerSchema } from '../lib/validators.js';
-import api from '../lib/api.js';
-import { useAuth } from '../context/AuthContext.jsx';
+import useRegisterForm from '../hooks/useRegisterForm.js';
 import Input from '../components/ui/Input.jsx';
 import PasswordInput from '../components/ui/PasswordInput.jsx';
 import Button from '../components/ui/Button.jsx';
 import FormError from '../components/ui/FormError.jsx';
 
 export default function Register() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    setError,
-  } = useForm({ resolver: zodResolver(registerSchema) });
-
-  const onSubmit = async ({ confirmPassword: _, ...data }) => {
-    try {
-      const res = await api.post('/auth/register', data);
-      login(res.data.data.user, res.data.data.accessToken);
-      toast.success('Account created!');
-      navigate('/dashboard');
-    } catch (err) {
-      const message =
-        err.response?.data?.error?.message || 'Something went wrong';
-      if (err.response?.status === 409) {
-        setError('root', { message });
-      } else {
-        toast.error(message);
-      }
-    }
-  };
+  const { form, onSubmit, meta } = useRegisterForm();
+  const { register, formState: { errors, isSubmitting } } = form;
 
   return (
     <div className="flex flex-1 items-center justify-center py-10">
@@ -48,7 +19,6 @@ export default function Register() {
           border: '1px solid var(--border)',
         }}
       >
-        {/* Header */}
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
             <UserPlus size={22} className="text-primary-600" />
@@ -61,12 +31,13 @@ export default function Register() {
 
         <FormError message={errors.root?.message} />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <Input
             label="Username"
             id="username"
             placeholder="johndoe"
             autoComplete="username"
+            required={meta.username}
             error={errors.username?.message}
             {...register('username')}
           />
@@ -76,6 +47,7 @@ export default function Register() {
             type="email"
             placeholder="john@example.com"
             autoComplete="email"
+            required={meta.email}
             error={errors.email?.message}
             {...register('email')}
           />
@@ -84,6 +56,7 @@ export default function Register() {
             id="password"
             placeholder="Min 8 characters"
             autoComplete="new-password"
+            required={meta.password}
             error={errors.password?.message}
             {...register('password')}
           />
@@ -92,6 +65,7 @@ export default function Register() {
             id="confirmPassword"
             placeholder="Re-enter your password"
             autoComplete="new-password"
+            required={meta.confirmPassword}
             error={errors.confirmPassword?.message}
             {...register('confirmPassword')}
           />

@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 
-const Input = forwardRef(({ label, id, error, required, ...props }, ref) => (
+const DateTimePicker = forwardRef(({ label, id, error, required, ...props }, ref) => (
   <div>
     {label && (
       <label
@@ -16,7 +16,8 @@ const Input = forwardRef(({ label, id, error, required, ...props }, ref) => (
     <input
       id={id}
       ref={ref}
-      className="w-full rounded-lg px-3.5 py-2.5 text-sm outline-none transition-colors placeholder:opacity-40 focus:ring-2 focus:ring-[var(--ring)]"
+      type="datetime-local"
+      className="w-full rounded-lg px-3.5 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-[var(--ring)]"
       style={{
         backgroundColor: 'var(--bg-secondary)',
         border: `1px solid ${error ? 'var(--color-danger-400)' : 'var(--border)'}`,
@@ -32,5 +33,5 @@ const Input = forwardRef(({ label, id, error, required, ...props }, ref) => (
   </div>
 ));
 
-Input.displayName = 'Input';
-export default Input;
+DateTimePicker.displayName = 'DateTimePicker';
+export default DateTimePicker;
