@@ -8,10 +8,12 @@ import {
   deletePoll,
 } from '../controllers/polls.controller.js';
 import { requireAuth } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { createPollSchema } from '../validators/poll.validator.js';
 
 const router = Router();
 
-router.post('/', requireAuth, createPoll);
+router.post('/', requireAuth, validate(createPollSchema), createPoll);
 router.get('/public', getPublicPolls);
 router.get('/me', requireAuth, getMyPolls);
 router.get('/:id', getPollById);
