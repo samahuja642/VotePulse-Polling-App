@@ -1,11 +1,11 @@
 import pool from '../../config/db.js';
 
-export const insertPoll = async (client, { creatorId, title, description, isPublic, multiVote, expiresAt }) => {
+export const insertPoll = async (client, { creatorId, title, description, isPublic, multiVote, showResults, expiresAt }) => {
   const { rows } = await client.query(
-    `INSERT INTO polls (creator_id, title, description, is_public, multi_vote, expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING id, creator_id, title, description, is_public, multi_vote, status, expires_at, created_at`,
-    [creatorId, title, description, isPublic, multiVote, expiresAt || null],
+    `INSERT INTO polls (creator_id, title, description, is_public, multi_vote, show_results, expires_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id, creator_id, title, description, is_public, multi_vote, show_results, status, expires_at, created_at`,
+    [creatorId, title, description, isPublic, multiVote, showResults, expiresAt || null],
   );
   return rows[0];
 };
@@ -24,6 +24,51 @@ export const insertOptions = async (client, pollId, options) => {
      VALUES ${values.join(', ')}
      RETURNING id, poll_id, text, position`,
     params,
+  );
+  return rows;
+};
+
+export const findMyPolls = async (userId, { limit, offset }) => {
+  const countResult = await pool.query(
+    `SELECT COUNT(*)::int AS total FROM polls WHERE creator_id = $1`,
+    [userId],
+  );
+
+  const { rows } = await pool.query(
+    `SELECT p.id, p.title, p.description, p.is_public, p.status, p.expires_at, p.created_at,
+            COUNT(v.id)::int AS vote_count
+     FROM polls p
+     LEFT JOIN votes v ON v.poll_id = p.id
+     WHERE p.creator_id = $1
+     GROUP BY p.id
+     ORDER BY p.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [userId, limit, offset],
+  );
+
+  return { polls: rows, total: countResult.rows[0].total };
+};
+
+export const findPollById = async (pollId) => {
+  const { rows } = await pool.query(
+    `SELECT p.id, p.creator_id, p.title, p.description, p.is_public, p.multi_vote,
+            p.show_results, p.status, p.expires_at, p.created_at,
+            u.username AS creator_username
+     FROM polls p
+     JOIN users u ON u.id = p.creator_id
+     WHERE p.id = $1`,
+    [pollId],
+  );
+  return rows[0] || null;
+};
+
+export const findOptionsByPollId = async (pollId) => {
+  const { rows } = await pool.query(
+    `SELECT id, text, position
+     FROM options
+     WHERE poll_id = $1
+     ORDER BY position`,
+    [pollId],
   );
   return rows;
 };

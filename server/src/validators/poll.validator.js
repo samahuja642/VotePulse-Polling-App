@@ -5,6 +5,7 @@ export const createPollSchema = z.object({
   description: z.string().trim().max(1000).optional().default(''),
   is_public: z.boolean().optional().default(true),
   multi_vote: z.boolean().optional().default(false),
+  show_results: z.boolean().optional().default(false),
   expires_at: z
     .string()
     .datetime({ offset: true })
