@@ -5,6 +5,7 @@ export const createPollSchema = z.object({
   description: z.string().max(1000, 'Description is too long').optional().default(''),
   is_public: z.boolean().optional().default(true),
   multi_vote: z.boolean().optional().default(false),
+  show_results: z.boolean().optional().default(false),
   expires_at: z.string().optional().default(''),
   options: z
     .array(z.object({ text: z.string().min(1, 'Option cannot be empty').max(200) }))

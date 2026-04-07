@@ -1,9 +1,13 @@
 import { Router } from 'express';
-import { castVote, getResults } from '../controllers/votes.controller.js';
+import { castVote, checkVote, getResults } from '../controllers/votes.controller.js';
+import { optionalAuth } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { castVoteSchema } from '../validators/vote.validator.js';
 
 const router = Router();
 
-router.post('/:id/vote', castVote);
-router.get('/:id/results', getResults);
+router.post('/:id/vote', optionalAuth, validate(castVoteSchema), castVote);
+router.get('/:id/vote', optionalAuth, checkVote);
+router.get('/:id/results', optionalAuth, getResults);
 
 export default router;

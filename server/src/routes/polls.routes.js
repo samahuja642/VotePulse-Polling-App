@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import {
   createPoll,
-  getPublicPolls,
   getMyPolls,
   getPollById,
   updatePoll,
@@ -14,7 +13,6 @@ import { createPollSchema } from '../validators/poll.validator.js';
 const router = Router();
 
 router.post('/', requireAuth, validate(createPollSchema), createPoll);
-router.get('/public', getPublicPolls);
 router.get('/me', requireAuth, getMyPolls);
 router.get('/:id', getPollById);
 router.patch('/:id', requireAuth, updatePoll);
