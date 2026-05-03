@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2 } from 'lucide-react';
+import { DotsSixVertical, Trash } from '@phosphor-icons/react';
 import Input from './Input.jsx';
 
 export default function SortableItem({ id, index, placeholder, error, canRemove, onRemove, register, fieldName }) {
@@ -28,7 +28,7 @@ export default function SortableItem({ id, index, placeholder, error, canRemove,
         {...attributes}
         {...listeners}
       >
-        <GripVertical size={16} />
+        <DotsSixVertical size={16} />
       </button>
       <div className="flex-1">
         <Input
@@ -45,7 +45,7 @@ export default function SortableItem({ id, index, placeholder, error, canRemove,
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-950"
           style={{ color: 'var(--color-danger-500)' }}
         >
-          <Trash2 size={16} />
+          <Trash size={16} />
         </button>
       )}
     </div>

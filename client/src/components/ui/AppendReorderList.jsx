@@ -11,7 +11,7 @@ import {
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import { Plus } from 'lucide-react';
+import { Plus } from '@phosphor-icons/react';
 import SortableItem from './SortableItem.jsx';
 
 export default function AppendReorderList({

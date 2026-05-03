@@ -18,6 +18,7 @@ export default function useCreatePollForm() {
       description: '',
       is_public: true,
       multi_vote: false,
+      show_results: false,
       expires_at: '',
       options: [{ text: '' }, { text: '' }],
     },

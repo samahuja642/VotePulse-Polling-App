@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Loader2 } from 'lucide-react';
+import { CircleNotch } from '@phosphor-icons/react';
 
 export default function ProtectedRoute() {
   const { user, loading } = useAuth();
@@ -9,7 +9,7 @@ export default function ProtectedRoute() {
   if (loading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary-500" />
+        <CircleNotch size={24} className="animate-spin text-primary-500" />
       </div>
     );
   }

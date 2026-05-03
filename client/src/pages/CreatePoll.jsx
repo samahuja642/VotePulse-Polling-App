@@ -1,4 +1,3 @@
-import { BarChart3 } from 'lucide-react';
 import useCreatePollForm from '../hooks/useCreatePollForm.js';
 import Input from '../components/ui/Input.jsx';
 import Textarea from '../components/ui/Textarea.jsx';
@@ -8,35 +7,44 @@ import AppendReorderList from '../components/ui/AppendReorderList.jsx';
 import Button from '../components/ui/Button.jsx';
 import FormError from '../components/ui/FormError.jsx';
 
+function FormSection({ label, children }) {
+  return (
+    <div className="space-y-5">
+      <p
+        className="text-[10px] font-semibold uppercase tracking-[0.15em]"
+        style={{ color: 'var(--text-tertiary)' }}
+      >
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
 export default function CreatePoll() {
   const { form, fieldArray, handleReorder, onSubmit, meta } = useCreatePollForm();
   const { register, formState: { errors, isSubmitting } } = form;
   const { fields, append, remove } = fieldArray;
 
   return (
-    <div className="flex flex-1 justify-center py-8 px-4">
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
-            <BarChart3 size={22} className="text-primary-600" />
-          </div>
-          <h1 className="text-2xl font-bold">Create a new poll</h1>
+    <div className="flex flex-1 justify-center px-4 py-10">
+      <div className="w-full max-w-xl">
+
+        <div className="mb-10">
+          <h1 className="text-2xl font-semibold" style={{ color: 'var(--text)' }}>
+            New poll
+          </h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Set up your question and options, then share it with the world.
+            Set a question, add options, configure and publish.
           </p>
         </div>
 
         <FormError message={errors.root?.message} />
 
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* Title & Description */}
-          <div
-            className="rounded-xl p-5 space-y-4"
-            style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
-          >
+        <form onSubmit={onSubmit} className="space-y-10">
+
+          <FormSection label="Question">
             <Input
-              label="Question / Title"
               id="title"
               placeholder="What do you want to ask?"
               required={meta.title}
@@ -44,22 +52,21 @@ export default function CreatePoll() {
               {...register('title')}
             />
             <Textarea
-              label="Description"
               id="description"
-              placeholder="Add some context to your poll…"
+              placeholder="Add context… (optional)"
               required={meta.description}
               error={errors.description?.message}
               {...register('description')}
             />
-          </div>
+          </FormSection>
 
-          {/* Options */}
           <div
-            className="rounded-xl p-5"
-            style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
-          >
+            className="h-px w-full"
+            style={{ backgroundColor: 'var(--border)' }}
+          />
+
+          <FormSection label="Options">
             <AppendReorderList
-              label="Options"
               fields={fields}
               errors={errors.options}
               rootError={errors.options?.root?.message}
@@ -72,18 +79,15 @@ export default function CreatePoll() {
               register={register}
               fieldName="options"
             />
-          </div>
+          </FormSection>
 
-          {/* Settings */}
           <div
-            className="rounded-xl p-5 space-y-4"
-            style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
-          >
-            <h2 className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-              Settings
-            </h2>
+            className="h-px w-full"
+            style={{ backgroundColor: 'var(--border)' }}
+          />
 
-            <div className="space-y-3">
+          <FormSection label="Settings">
+            <div className="space-y-4">
               <Checkbox
                 label="Public poll"
                 description="Visible on the Explore page"
@@ -94,8 +98,12 @@ export default function CreatePoll() {
                 description="Voters can select more than one option"
                 {...register('multi_vote')}
               />
+              <Checkbox
+                label="Show results to voters"
+                description="Respondents can see vote counts after voting"
+                {...register('show_results')}
+              />
             </div>
-
             <DateTimePicker
               label="Expiry date"
               id="expires_at"
@@ -103,17 +111,12 @@ export default function CreatePoll() {
               error={errors.expires_at?.message}
               {...register('expires_at')}
             />
-          </div>
+          </FormSection>
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            icon={BarChart3}
-            loading={isSubmitting}
-            loadingText="Creating poll…"
-          >
+          <Button type="submit" loading={isSubmitting} loadingText="Creating…">
             Create poll
           </Button>
+
         </form>
       </div>
     </div>

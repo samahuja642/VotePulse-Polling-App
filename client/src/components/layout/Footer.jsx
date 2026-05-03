@@ -3,22 +3,25 @@ import { Link } from 'react-router-dom';
 export default function Footer() {
   return (
     <footer
-      className="mt-auto py-6"
-      style={{ borderTop: '1px solid var(--border)', color: 'var(--text-tertiary)' }}
+      className="mt-auto py-5"
+      style={{ borderTop: '1px solid var(--border)' }}
     >
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 sm:flex-row sm:justify-between sm:px-6">
-        <p className="text-sm">
-          &copy; {new Date().getFullYear()} Vote<span className="text-primary-500">Pulse</span>
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6">
+        <p
+          className="text-xs tracking-wide"
+          style={{ color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}
+        >
+          © {new Date().getFullYear()} VotePulse
         </p>
-        <div className="flex gap-4 text-sm">
-          <Link to="/explore" className="hover:text-primary-500 transition-colors">
+        <div className="flex gap-5 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <Link to="/explore" className="hover:opacity-100 transition-opacity opacity-70">
             Explore
           </Link>
           <a
             href="https://github.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-primary-500 transition-colors"
+            className="hover:opacity-100 transition-opacity opacity-70"
           >
             GitHub
           </a>
