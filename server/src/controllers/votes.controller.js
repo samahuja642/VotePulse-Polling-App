@@ -17,6 +17,8 @@ export const castVote = async (req, res, next) => {
       guestToken,
     );
 
+    req.app.get('io').to(`poll:${pollId}`).emit('vote:new', { results });
+
     res.status(201).json({ success: true, data: { vote, results } });
   } catch (err) {
     next(err);

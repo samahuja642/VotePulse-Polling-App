@@ -1,5 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { List, X } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -8,64 +8,78 @@ const navLinks = [
   { to: '/dashboard', label: 'Dashboard' },
 ];
 
-const linkClass = ({ isActive }) =>
-  `text-sm font-medium transition-colors ${
-    isActive
-      ? 'text-primary-600'
-      : 'hover:text-primary-600'
-  }`;
-
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, logout } = useAuth();
 
   return (
     <header
-      className="sticky top-0 z-50 backdrop-blur-sm"
+      className="sticky top-0 z-50"
       style={{
-        backgroundColor: 'color-mix(in srgb, var(--bg) 85%, transparent)',
+        backgroundColor: 'color-mix(in srgb, var(--bg) 88%, transparent)',
         borderBottom: '1px solid var(--border)',
+        backdropFilter: 'blur(12px)',
       }}
     >
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+
         {/* Logo */}
-        <Link to="/" className="text-lg font-bold tracking-tight">
-          Vote<span className="text-primary-500">Pulse</span>
+        <Link
+          to="/"
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 800,
+            fontSize: '1.15rem',
+            letterSpacing: '-0.04em',
+            color: 'var(--text)',
+          }}
+        >
+          Vote<span style={{ color: 'var(--color-primary-400)' }}>Pulse</span>
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-6 sm:flex">
+        <div className="hidden items-center gap-7 sm:flex">
           {navLinks.map((link) => (
-            <NavLink key={link.to} to={link.to} className={linkClass}>
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className="text-sm transition-opacity"
+              style={({ isActive }) => ({
+                color: isActive ? 'var(--color-primary-400)' : 'var(--text-secondary)',
+                opacity: isActive ? 1 : undefined,
+              })}
+            >
               {link.label}
             </NavLink>
           ))}
 
           {user ? (
             <>
-              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
                 {user.username}
               </span>
               <Link
                 to="/polls/new"
-                className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+                className="rounded-sm px-4 py-1.5 text-sm font-semibold tracking-wide transition-colors hover:bg-primary-300"
+                style={{ backgroundColor: 'var(--color-primary-400)', color: '#0d0b09' }}
               >
-                New Poll
+                New poll
               </Link>
               <button
                 onClick={logout}
-                className="rounded-md px-4 py-1.5 text-sm font-medium transition-colors"
-                style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                className="text-sm transition-colors hover:opacity-100"
+                style={{ color: 'var(--text-tertiary)' }}
               >
-                Log out
+                Sign out
               </button>
             </>
           ) : (
             <Link
               to="/login"
-              className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+              className="rounded-sm px-4 py-1.5 text-sm font-semibold tracking-wide transition-colors hover:bg-primary-300"
+              style={{ backgroundColor: 'var(--color-primary-400)', color: '#0d0b09' }}
             >
-              Sign In
+              Sign in
             </Link>
           )}
         </div>
@@ -73,25 +87,28 @@ export default function Navbar() {
         {/* Mobile toggle */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="sm:hidden p-1.5 rounded-md transition-colors"
+          className="sm:hidden p-1.5 rounded transition-colors"
           style={{ color: 'var(--text-secondary)' }}
           aria-label="Toggle menu"
         >
-          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          {mobileOpen ? <X size={20} /> : <List size={20} />}
         </button>
       </nav>
 
       {/* Mobile menu */}
       {mobileOpen && (
         <div
-          className="sm:hidden px-4 pb-4 flex flex-col gap-3"
+          className="sm:hidden px-4 pb-5 pt-2 flex flex-col gap-4"
           style={{ borderBottom: '1px solid var(--border)' }}
         >
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
-              className={linkClass}
+              className="text-sm"
+              style={({ isActive }) => ({
+                color: isActive ? 'var(--color-primary-400)' : 'var(--text-secondary)',
+              })}
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
@@ -102,26 +119,28 @@ export default function Navbar() {
             <>
               <Link
                 to="/polls/new"
-                className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white text-center hover:bg-primary-700 transition-colors"
+                className="rounded-sm px-4 py-2 text-sm font-semibold tracking-wide text-center transition-colors"
+                style={{ backgroundColor: 'var(--color-primary-400)', color: '#0d0b09' }}
                 onClick={() => setMobileOpen(false)}
               >
-                New Poll
+                New poll
               </Link>
               <button
                 onClick={() => { logout(); setMobileOpen(false); }}
-                className="rounded-md px-4 py-1.5 text-sm font-medium text-center transition-colors"
-                style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                className="text-sm text-center"
+                style={{ color: 'var(--text-tertiary)' }}
               >
-                Log out
+                Sign out
               </button>
             </>
           ) : (
             <Link
               to="/login"
-              className="rounded-md bg-primary-600 px-4 py-1.5 text-sm font-medium text-white text-center hover:bg-primary-700 transition-colors"
+              className="rounded-sm px-4 py-2 text-sm font-semibold tracking-wide text-center transition-colors"
+              style={{ backgroundColor: 'var(--color-primary-400)', color: '#0d0b09' }}
               onClick={() => setMobileOpen(false)}
             >
-              Sign In
+              Sign in
             </Link>
           )}
         </div>

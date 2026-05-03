@@ -5,9 +5,9 @@ export default function FormError({ message }) {
     <div
       className="mb-4 rounded-lg px-4 py-3 text-sm font-medium"
       style={{
-        backgroundColor: 'var(--color-danger-50)',
+        backgroundColor: 'color-mix(in srgb, var(--color-danger-500) 12%, var(--surface))',
         color: 'var(--color-danger-600)',
-        border: '1px solid var(--color-danger-200)',
+        border: '1px solid color-mix(in srgb, var(--color-danger-500) 25%, var(--border))',
       }}
     >
       {message}

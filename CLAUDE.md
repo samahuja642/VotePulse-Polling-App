@@ -28,7 +28,7 @@ votepulse/
 
 ## Database Tables
 - **users**: id (UUID PK), username (unique), email (unique), password, created_at
-- **polls**: id (UUID PK), creator_id (FK→users), title, description, is_public, multi_vote, status ('open'|'closed'), expires_at, created_at
+- **polls**: id (UUID PK), creator_id (FK→users), title, description, is_public, multi_vote, show_results, status ('open'|'closed'), expires_at, created_at
 - **options**: id (UUID PK), poll_id (FK→polls), text, position
 - **votes**: id (UUID PK), poll_id (FK→polls), option_id (FK→options), user_id (FK→users, nullable), guest_token, created_at — UNIQUE(poll_id, user_id), UNIQUE(poll_id, guest_token)
 
@@ -38,13 +38,13 @@ POST   /api/auth/register          # Create user
 POST   /api/auth/login             # Login → JWT
 GET    /api/auth/me                # Current user (auth required)
 POST   /api/polls                  # Create poll (auth)
-GET    /api/polls/public           # List public polls (?page, ?limit, ?sort, ?search)
-GET    /api/polls/me               # User's polls (auth)
+GET    /api/polls/me               # User's polls, paginated (auth)
 GET    /api/polls/:id              # Poll detail + options
 PATCH  /api/polls/:id              # Close/reopen (owner only)
 DELETE /api/polls/:id              # Delete poll (owner only)
-POST   /api/polls/:id/vote         # Cast vote (auth optional for guest polls)
-GET    /api/polls/:id/results      # Aggregated vote counts
+POST   /api/polls/:id/vote         # Cast vote (optionalAuth — auth or guest_token)
+GET    /api/polls/:id/vote         # Check if current user/guest already voted (optionalAuth)
+GET    /api/polls/:id/results      # Vote counts (owner always, responders if show_results=true)
 ```
 
 ## Coding Rules
@@ -72,8 +72,8 @@ Register/Login → bcrypt hash (12 rounds) → JWT access (15min, in-memory) + r
 Socket.io room per poll (`poll:<id>`). Server emits `vote:new` with updated counts on each vote. Frontend joins room on PollDetail mount, updates Recharts chart reactively. Handle disconnect/reconnect.
 
 ## Vote Deduplication
-- Authenticated: UNIQUE(poll_id, user_id) constraint — catch conflict error
-- Guest: UUID cookie token + UNIQUE(poll_id, guest_token)
+- **Two-layer defense**: app-level pre-check (`findUserVote`) for clean errors in the normal case + DB UNIQUE constraint as safety net for race conditions (catch PostgreSQL error code `23505`)
+- Authenticated: UNIQUE(poll_id, user_id) — Guest: UUID cookie token + UNIQUE(poll_id, guest_token)
 - Always check poll status=open AND expires_at > NOW() before accepting
 
 ## Build Order
@@ -106,6 +106,7 @@ Tailwind v4 CSS-first config in `client/src/index.css` — no `tailwind.config.j
 ## Migrations
 - Files: `server/src/db/migrations/NNN_description.sql` — sequential, each run in a transaction
 - Runner (`server/src/db/migrate.js`) auto-runs before `npm run dev` / `npm start` / `npm run migrate` — tracks applied files in `migrations` table, skips already-applied
+- **NEVER edit an already-applied migration** — the runner skips it. Always create a new numbered migration for schema changes (e.g., `ALTER TABLE` to add columns). Use `DEFAULT` values so existing rows are backfilled.
 
 ## Frontend Architecture Conventions
 - **Separation of concerns**: Pages are pure UI — all logic (form setup, API calls, navigation, error handling) lives in custom hooks (`hooks/use*Form.js`)
@@ -113,6 +114,12 @@ Tailwind v4 CSS-first config in `client/src/index.css` — no `tailwind.config.j
 - **Schema-driven required/optional**: `getFieldMeta(schema)` in `lib/formUtils.js` introspects Zod schema via `safeParse(undefined)` — returns `{ field: true/false }`. Hooks compute `meta` at module level, pages pass `required={meta.fieldName}` to components. Components show red `*` if `true`, "(optional)" if `false`.
 - **Validation error mapping**: Server 422 responses with `details: [{ path, message }]` are mapped to per-field errors via `form.setError(path)`. Errors without a path go to `root`.
 - **Dates**: Client sends ISO strings, server stores as `TIMESTAMPTZ` (UTC). All timezone handling is implicit via PostgreSQL.
+
+## Backend Conventions
+- **3-layer architecture**: Controller (HTTP) → Service (business logic) → Queries (data access). Controllers never write SQL; queries never throw AppErrors.
+- **Auth middleware**: `requireAuth` (rejects if no valid token) and `optionalAuth` (attaches `req.user` if valid token, proceeds as guest otherwise) in `middleware/auth.js`
+- **Pagination**: Use `parsePagination()` and `buildPagination()` from `utils/pagination.js` — defaults: page=1, limit=10, max=50. Never hardcode pagination defaults in services.
+- **Ownership checks**: For owner-only endpoints, fetch the resource and compare `creator_id` to `req.user.id`. Return 403 (not 404) when unauthorized.
 
 ## Don'ts
 No ORM. No localStorage for tokens. No skipping validation. No hardcoded secrets. No unhandled expired polls.
