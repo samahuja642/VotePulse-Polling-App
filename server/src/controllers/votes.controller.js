@@ -6,15 +6,18 @@ import { AppError } from '../utils/AppError.js';
 export const castVote = async (req, res, next) => {
   try {
     const pollId = req.params.id;
-    const { option_id, guest_token } = req.validatedBody;
+    const { option_id, guest_token, device_hash } = req.validatedBody;
     const userId = req.user?.id || null;
     const guestToken = guest_token || null;
+    const ipAddress = req.headers['x-forwarded-for']?.split(',')[0].trim() ?? req.ip ?? null;
 
     const { vote, results } = await voteService.castVote(
       pollId,
       option_id,
       userId,
       guestToken,
+      device_hash || null,
+      ipAddress,
     );
 
     req.app.get('io').to(`poll:${pollId}`).emit('vote:new', { results });

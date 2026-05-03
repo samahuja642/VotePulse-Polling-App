@@ -1,13 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { connectSocket } from '../lib/socket.js';
+import { getGuestToken } from '../lib/guestToken.js';
+import { getDeviceHash } from '../lib/deviceId.js';
 
 export default function usePollDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const guestToken = useRef(user ? null : getGuestToken()).current;
 
   const [poll, setPoll] = useState(null);
   const [results, setResults] = useState(null);
@@ -39,10 +42,12 @@ export default function usePollDetail() {
 
         // Run vote-check and results fetch in parallel where possible
         await Promise.all([
-          // Check if authenticated user already voted
-          user
+          // Check if user/guest already voted
+          user || guestToken
             ? api
-                .get(`/polls/${id}/vote`)
+                .get(`/polls/${id}/vote`, {
+                  params: guestToken ? { guest_token: guestToken } : undefined,
+                })
                 .then((res) => {
                   if (res.data.data.voted) setExistingVote(res.data.data.vote);
                 })
@@ -103,7 +108,12 @@ export default function usePollDetail() {
 
     setVoting(true);
     try {
-      const res = await api.post(`/polls/${id}/vote`, { option_id: selected[0] });
+      const device_hash = user ? null : await getDeviceHash();
+      const res = await api.post(`/polls/${id}/vote`, {
+        option_id: selected[0],
+        guest_token: guestToken || undefined,
+        device_hash: device_hash || undefined,
+      });
       const { vote, results: newResults } = res.data.data;
 
       setExistingVote(vote);
@@ -116,7 +126,7 @@ export default function usePollDetail() {
     } finally {
       setVoting(false);
     }
-  }, [id, selected]);
+  }, [id, selected, user, guestToken]);
 
   return {
     poll,
