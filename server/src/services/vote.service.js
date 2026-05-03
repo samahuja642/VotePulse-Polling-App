@@ -1,13 +1,15 @@
+import crypto from 'crypto';
 import { AppError } from '../utils/AppError.js';
 import {
   findPollForVoting,
   findOptionByIdAndPoll,
   findUserVote,
+  findVoteByFingerprint,
   insertVote,
   getVoteCounts,
 } from '../db/queries/vote.queries.js';
 
-export const castVote = async (pollId, optionId, userId, guestToken) => {
+export const castVote = async (pollId, optionId, userId, guestToken, deviceHash, ipAddress) => {
   // 1. Poll exists?
   const poll = await findPollForVoting(pollId);
   if (!poll) {
@@ -35,15 +37,25 @@ export const castVote = async (pollId, optionId, userId, guestToken) => {
     throw AppError.badRequest('Authentication or guest token required');
   }
 
-  // 6. Already voted? (app-level pre-check)
+  // 6. Already voted? (app-level pre-check: identity)
   const existingVote = await findUserVote(pollId, userId, guestToken);
   if (existingVote) {
     throw AppError.conflict('You have already voted on this poll');
   }
 
-  // 7. Insert vote — DB unique constraint as safety net for race conditions
+  // 7. Fingerprint check (device + IP hash, guests only)
+  let fingerprint = null;
+  if (!userId && deviceHash && ipAddress) {
+    fingerprint = crypto.createHash('sha256').update(`${deviceHash}|${ipAddress}`).digest('hex');
+    const fpVote = await findVoteByFingerprint(pollId, fingerprint);
+    if (fpVote) {
+      throw AppError.conflict('A vote has already been cast from this device');
+    }
+  }
+
+  // 8. Insert vote — DB unique constraint as safety net for race conditions
   try {
-    const vote = await insertVote(pollId, optionId, userId, guestToken);
+    const vote = await insertVote(pollId, optionId, userId, guestToken, fingerprint);
     const results = await getVoteCounts(pollId);
     return { vote, results };
   } catch (err) {

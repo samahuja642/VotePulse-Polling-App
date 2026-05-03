@@ -20,14 +20,23 @@ export const findOptionByIdAndPoll = async (optionId, pollId) => {
   return rows[0] || null;
 };
 
-export const insertVote = async (pollId, optionId, userId, guestToken) => {
+export const insertVote = async (pollId, optionId, userId, guestToken, fingerprint) => {
   const { rows } = await pool.query(
-    `INSERT INTO votes (poll_id, option_id, user_id, guest_token)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO votes (poll_id, option_id, user_id, guest_token, fingerprint)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id, poll_id, option_id, user_id, guest_token, created_at`,
-    [pollId, optionId, userId || null, guestToken || null],
+    [pollId, optionId, userId || null, guestToken || null, fingerprint || null],
   );
   return rows[0];
+};
+
+export const findVoteByFingerprint = async (pollId, fingerprint) => {
+  if (!fingerprint) return null;
+  const { rows } = await pool.query(
+    `SELECT id FROM votes WHERE poll_id = $1 AND fingerprint = $2 LIMIT 1`,
+    [pollId, fingerprint],
+  );
+  return rows[0] || null;
 };
 
 export const findUserVote = async (pollId, userId, guestToken) => {

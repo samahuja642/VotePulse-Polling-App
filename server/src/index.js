@@ -22,6 +22,9 @@ const io = new Server(httpServer, {
   },
 });
 
+// Trust first proxy so req.ip resolves correctly behind Nginx / Railway / Render
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(cors({ origin: env.clientOrigin, credentials: true }));
 app.use(express.json());
