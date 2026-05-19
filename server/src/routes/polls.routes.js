@@ -8,14 +8,14 @@ import {
 } from '../controllers/polls.controller.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { createPollSchema } from '../validators/poll.validator.js';
+import { createPollSchema, updatePollSchema } from '../validators/poll.validator.js';
 
 const router = Router();
 
 router.post('/', requireAuth, validate(createPollSchema), createPoll);
 router.get('/me', requireAuth, getMyPolls);
 router.get('/:id', getPollById);
-router.patch('/:id', requireAuth, updatePoll);
+router.patch('/:id', requireAuth, validate(updatePollSchema), updatePoll);
 router.delete('/:id', requireAuth, deletePoll);
 
 export default router;

@@ -101,7 +101,7 @@ function ResultOptions({ results }) {
   );
 }
 
-function ReadonlyOptions({ options, votedOptionId, message }) {
+function ReadonlyOptions({ options, votedOptionIds, message }) {
   return (
     <Section heading="Options">
       {options.map((option) => (
@@ -110,7 +110,7 @@ function ReadonlyOptions({ options, votedOptionId, message }) {
           className="flex items-center gap-3 rounded-lg p-3"
           style={{ border: '1px solid var(--border)' }}
         >
-          {votedOptionId === option.id && (
+          {votedOptionIds?.includes(option.id) && (
             <CheckCircle size={16} weight="fill" className="shrink-0" style={{ color: 'var(--color-primary-400)' }} />
           )}
           <span className="text-sm" style={{ color: 'var(--text)' }}>

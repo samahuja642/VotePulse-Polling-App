@@ -3,13 +3,13 @@ import { AppError } from '../utils/AppError.js';
 import {
   findPollForVoting,
   findOptionByIdAndPoll,
-  findUserVote,
+  findUserVotes,
   findVoteByFingerprint,
   insertVote,
   getVoteCounts,
 } from '../db/queries/vote.queries.js';
 
-export const castVote = async (pollId, optionId, userId, guestToken, deviceHash, ipAddress) => {
+export const castVote = async (pollId, optionIds, userId, guestToken, deviceHash, ipAddress) => {
   // 1. Poll exists?
   const poll = await findPollForVoting(pollId);
   if (!poll) {
@@ -26,24 +26,31 @@ export const castVote = async (pollId, optionId, userId, guestToken, deviceHash,
     throw AppError.badRequest('This poll has expired');
   }
 
-  // 4. Option belongs to poll?
-  const option = await findOptionByIdAndPoll(optionId, pollId);
-  if (!option) {
-    throw AppError.notFound('Option not found for this poll');
+  // 4. Multi-vote check
+  if (!poll.multi_vote && optionIds.length > 1) {
+    throw AppError.badRequest('This poll only allows a single choice');
   }
 
-  // 5. Must have either userId or guestToken
+  // 5. All options belong to poll?
+  for (const optionId of optionIds) {
+    const option = await findOptionByIdAndPoll(optionId, pollId);
+    if (!option) {
+      throw AppError.notFound('Option not found for this poll');
+    }
+  }
+
+  // 6. Must have either userId or guestToken
   if (!userId && !guestToken) {
     throw AppError.badRequest('Authentication or guest token required');
   }
 
-  // 6. Already voted? (app-level pre-check: identity)
-  const existingVote = await findUserVote(pollId, userId, guestToken);
-  if (existingVote) {
+  // 7. Already voted? (app-level pre-check: identity)
+  const existingVotes = await findUserVotes(pollId, userId, guestToken);
+  if (existingVotes.length > 0) {
     throw AppError.conflict('You have already voted on this poll');
   }
 
-  // 7. Fingerprint check (device + IP hash, guests only)
+  // 8. Fingerprint check (device + IP hash, guests only)
   let fingerprint = null;
   if (!userId && deviceHash && ipAddress) {
     fingerprint = crypto.createHash('sha256').update(`${deviceHash}|${ipAddress}`).digest('hex');
@@ -53,11 +60,15 @@ export const castVote = async (pollId, optionId, userId, guestToken, deviceHash,
     }
   }
 
-  // 8. Insert vote — DB unique constraint as safety net for race conditions
+  // 9. Insert votes — DB unique constraint as safety net for race conditions
   try {
-    const vote = await insertVote(pollId, optionId, userId, guestToken, fingerprint);
+    const votes = [];
+    for (const optionId of optionIds) {
+      const vote = await insertVote(pollId, optionId, userId, guestToken, fingerprint);
+      votes.push(vote);
+    }
     const results = await getVoteCounts(pollId);
-    return { vote, results };
+    return { votes, results };
   } catch (err) {
     if (err.code === '23505') {
       throw AppError.conflict('You have already voted on this poll');

@@ -7,6 +7,8 @@ import {
   findMyPolls,
   findPollById,
   findOptionsByPollId,
+  updatePollStatus,
+  softDeletePoll,
 } from '../db/queries/poll.queries.js';
 
 export const createPoll = async (creatorId, data) => {
@@ -53,4 +55,34 @@ export const getPollById = async (pollId) => {
 
   const options = await findOptionsByPollId(pollId);
   return { ...poll, options };
+};
+
+export const togglePollStatus = async (pollId, userId, status) => {
+  const poll = await findPollById(pollId);
+  if (!poll) {
+    throw AppError.notFound('Poll not found');
+  }
+
+  if (poll.creator_id !== userId) {
+    throw AppError.forbidden('Only the poll owner can update this poll');
+  }
+
+  if (poll.status === status) {
+    throw AppError.badRequest(`Poll is already ${status}`);
+  }
+
+  return updatePollStatus(pollId, status);
+};
+
+export const deletePoll = async (pollId, userId) => {
+  const poll = await findPollById(pollId);
+  if (!poll) {
+    throw AppError.notFound('Poll not found');
+  }
+
+  if (poll.creator_id !== userId) {
+    throw AppError.forbidden('Only the poll owner can delete this poll');
+  }
+
+  await softDeletePoll(pollId);
 };
