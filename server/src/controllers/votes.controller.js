@@ -63,7 +63,12 @@ export const getResults = async (req, res, next) => {
     }
 
     const results = await getVoteCounts(pollId);
-    res.status(200).json({ success: true, data: results });
+    const totalVotes = results.reduce((sum, r) => sum + r.count, 0);
+    const resultsWithPercentages = results.map((r) => ({
+      ...r,
+      percentage: totalVotes > 0 ? parseFloat((r.count / totalVotes * 100).toFixed(1)) : 0,
+    }));
+    res.status(200).json({ success: true, data: resultsWithPercentages });
   } catch (err) {
     next(err);
   }

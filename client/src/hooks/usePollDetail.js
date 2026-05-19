@@ -79,10 +79,16 @@ export default function usePollDetail() {
     socket.emit('join:poll', id);
     socket.on('vote:new', ({ results: updated }) => setResults(updated));
 
+    // Rejoin room after reconnect so we keep receiving updates
+    const onReconnect = () => {
+      socket.emit('join:poll', id);
+    };
+    socket.on('connect', onReconnect);
+
     return () => {
       socket.emit('leave:poll', id);
       socket.off('vote:new');
-      // Don't disconnect the global socket — other pages may reconnect to it
+      socket.off('connect', onReconnect);
     };
   }, [id]);
 
