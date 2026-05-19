@@ -1,12 +1,5 @@
 import * as pollService from '../services/poll.service.js';
 
-const notImplemented = (_req, res) => {
-  res.status(501).json({
-    success: false,
-    error: { message: 'Not implemented', code: 'NOT_IMPLEMENTED' },
-  });
-};
-
 export const createPoll = async (req, res, next) => {
   try {
     const poll = await pollService.createPoll(req.user.id, req.validatedBody);
@@ -35,5 +28,19 @@ export const getPollById = async (req, res, next) => {
   }
 };
 
-export const updatePoll = notImplemented;
-export const deletePoll = notImplemented;
+export const updatePoll = async (req, res, next) => {
+  try {
+    const poll = await pollService.togglePollStatus(req.params.id, req.user.id, req.validatedBody.status);
+    res.status(200).json({ success: true, data: poll });
+  } catch (err) {
+    next(err);
+  }
+};
+export const deletePoll = async (req, res, next) => {
+  try {
+    await pollService.deletePoll(req.params.id, req.user.id);
+    res.status(200).json({ success: true, data: null });
+  } catch (err) {
+    next(err);
+  }
+};

@@ -39,7 +39,7 @@ export const findVoteByFingerprint = async (pollId, fingerprint) => {
   return rows[0] || null;
 };
 
-export const findUserVote = async (pollId, userId, guestToken) => {
+export const findUserVotes = async (pollId, userId, guestToken) => {
   if (userId) {
     const { rows } = await pool.query(
       `SELECT id, option_id, created_at
@@ -47,7 +47,7 @@ export const findUserVote = async (pollId, userId, guestToken) => {
        WHERE poll_id = $1 AND user_id = $2`,
       [pollId, userId],
     );
-    return rows[0] || null;
+    return rows;
   }
 
   if (guestToken) {
@@ -57,10 +57,10 @@ export const findUserVote = async (pollId, userId, guestToken) => {
        WHERE poll_id = $1 AND guest_token = $2`,
       [pollId, guestToken],
     );
-    return rows[0] || null;
+    return rows;
   }
 
-  return null;
+  return [];
 };
 
 export const getVoteCounts = async (pollId) => {

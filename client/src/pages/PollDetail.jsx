@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
-import { CircleNotch, WarningCircle, CheckCircle } from '@phosphor-icons/react';
+import { CircleNotch, WarningCircle, CheckCircle, ArrowLeft } from '@phosphor-icons/react';
 import usePollDetail from '../hooks/usePollDetail.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import PollHeader from '../components/poll/PollHeader.jsx';
 import PollOptions from '../components/poll/PollOptions.jsx';
+import ShareQRCard from '../components/poll/ShareQRCard.jsx';
 
 export default function PollDetail() {
+  const { user } = useAuth();
   const {
     poll,
     results,
@@ -51,6 +54,14 @@ export default function PollDetail() {
   return (
     <div className="flex flex-1 justify-center py-8 px-4">
       <div className="w-full max-w-2xl space-y-6">
+        <Link
+          to={user ? '/dashboard' : '/'}
+          className="cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium transition-colors hover:underline"
+          style={{ color: 'var(--text-tertiary)' }}
+        >
+          <ArrowLeft size={13} /> {user ? 'Back to Dashboard' : 'Back to Home'}
+        </Link>
+
         <PollHeader poll={poll} isOwner={isOwner} isClosed={isClosed} isExpired={isExpired} />
 
         {hasVoted && (
@@ -84,10 +95,12 @@ export default function PollDetail() {
             mode={canSeeResults && results ? 'results' : 'readonly'}
             options={poll.options}
             results={results}
-            votedOptionId={existingVote?.option_id}
+            votedOptionIds={existingVote?.map((v) => v.option_id)}
             message={!hasVoted && (isClosed || isExpired) ? 'This poll is no longer accepting votes.' : undefined}
           />
         )}
+
+        <ShareQRCard poll={poll} />
       </div>
     </div>
   );

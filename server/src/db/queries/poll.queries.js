@@ -30,7 +30,7 @@ export const insertOptions = async (client, pollId, options) => {
 
 export const findMyPolls = async (userId, { limit, offset }) => {
   const countResult = await pool.query(
-    `SELECT COUNT(*)::int AS total FROM polls WHERE creator_id = $1`,
+    `SELECT COUNT(*)::int AS total FROM polls WHERE creator_id = $1 AND deleted_at IS NULL`,
     [userId],
   );
 
@@ -39,7 +39,7 @@ export const findMyPolls = async (userId, { limit, offset }) => {
             COUNT(v.id)::int AS vote_count
      FROM polls p
      LEFT JOIN votes v ON v.poll_id = p.id
-     WHERE p.creator_id = $1
+     WHERE p.creator_id = $1 AND p.deleted_at IS NULL
      GROUP BY p.id
      ORDER BY p.created_at DESC
      LIMIT $2 OFFSET $3`,
@@ -56,7 +56,7 @@ export const findPollById = async (pollId) => {
             u.username AS creator_username
      FROM polls p
      JOIN users u ON u.id = p.creator_id
-     WHERE p.id = $1`,
+     WHERE p.id = $1 AND p.deleted_at IS NULL`,
     [pollId],
   );
   return rows[0] || null;
@@ -71,6 +71,26 @@ export const findOptionsByPollId = async (pollId) => {
     [pollId],
   );
   return rows;
+};
+
+export const updatePollStatus = async (pollId, status) => {
+  const { rows } = await pool.query(
+    `UPDATE polls SET status = $1
+     WHERE id = $2
+     RETURNING id, creator_id, title, description, is_public, multi_vote, show_results, status, expires_at, created_at`,
+    [status, pollId],
+  );
+  return rows[0] || null;
+};
+
+export const softDeletePoll = async (pollId) => {
+  const { rows } = await pool.query(
+    `UPDATE polls SET deleted_at = NOW()
+     WHERE id = $1 AND deleted_at IS NULL
+     RETURNING id`,
+    [pollId],
+  );
+  return rows[0] || null;
 };
 
 export const getClient = () => pool.connect();

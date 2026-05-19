@@ -3,9 +3,9 @@ import { z } from 'zod';
 export const createPollSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   description: z.string().max(1000, 'Description is too long').optional().default(''),
-  is_public: z.boolean().optional().default(true),
-  multi_vote: z.boolean().optional().default(false),
-  show_results: z.boolean().optional().default(false),
+  is_public: z.boolean(),
+  multi_vote: z.boolean(),
+  show_results: z.boolean(),
   expires_at: z.string().optional().default(''),
   options: z
     .array(z.object({ text: z.string().min(1, 'Option cannot be empty').max(200) }))

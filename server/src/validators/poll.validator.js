@@ -1,11 +1,15 @@
 import { z } from 'zod';
 
+export const updatePollSchema = z.object({
+  status: z.enum(['open', 'closed'], { message: "Status must be 'open' or 'closed'" }),
+});
+
 export const createPollSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200),
   description: z.string().trim().max(1000).optional().default(''),
-  is_public: z.boolean().optional().default(true),
-  multi_vote: z.boolean().optional().default(false),
-  show_results: z.boolean().optional().default(false),
+  is_public: z.boolean(),
+  multi_vote: z.boolean(),
+  show_results: z.boolean(),
   expires_at: z
     .string()
     .datetime({ offset: true })

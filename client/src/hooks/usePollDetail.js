@@ -22,7 +22,7 @@ export default function usePollDetail() {
 
   const isOwner = user && poll && user.id === poll.creator_id;
   const canSeeResults = isOwner || poll?.show_results;
-  const hasVoted = !!existingVote;
+  const hasVoted = existingVote && existingVote.length > 0;
   const isClosed = poll?.status === 'closed';
   const isExpired = poll?.expires_at && new Date(poll.expires_at) <= new Date();
   const canVote = !hasVoted && !isClosed && !isExpired;
@@ -49,7 +49,7 @@ export default function usePollDetail() {
                   params: guestToken ? { guest_token: guestToken } : undefined,
                 })
                 .then((res) => {
-                  if (res.data.data.voted) setExistingVote(res.data.data.vote);
+                  if (res.data.data.voted) setExistingVote(res.data.data.votes);
                 })
                 .catch(() => {})
             : Promise.resolve(),
@@ -79,10 +79,16 @@ export default function usePollDetail() {
     socket.emit('join:poll', id);
     socket.on('vote:new', ({ results: updated }) => setResults(updated));
 
+    // Rejoin room after reconnect so we keep receiving updates
+    const onReconnect = () => {
+      socket.emit('join:poll', id);
+    };
+    socket.on('connect', onReconnect);
+
     return () => {
       socket.emit('leave:poll', id);
       socket.off('vote:new');
-      // Don't disconnect the global socket — other pages may reconnect to it
+      socket.off('connect', onReconnect);
     };
   }, [id]);
 
@@ -110,13 +116,13 @@ export default function usePollDetail() {
     try {
       const device_hash = user ? null : await getDeviceHash();
       const res = await api.post(`/polls/${id}/vote`, {
-        option_id: selected[0],
+        option_ids: selected,
         guest_token: guestToken || undefined,
         device_hash: device_hash || undefined,
       });
-      const { vote, results: newResults } = res.data.data;
+      const { votes, results: newResults } = res.data.data;
 
-      setExistingVote(vote);
+      setExistingVote(votes);
       setResults(newResults);
       setSelected([]);
       toast.success('Vote cast!');
