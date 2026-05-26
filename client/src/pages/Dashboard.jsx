@@ -15,6 +15,8 @@ import {
   WarningCircle,
   ArrowClockwise,
   Warning,
+  MagnifyingGlass,
+  Check,
 } from '@phosphor-icons/react';
 import useDashboard from '../hooks/useDashboard.js';
 
@@ -46,10 +48,7 @@ function ConfirmModal({ title, message, confirmLabel, onConfirm, onCancel }) {
           <button
             onClick={onConfirm}
             className="cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:opacity-90"
-            style={{
-              backgroundColor: 'var(--color-danger-600)',
-              color: '#fff',
-            }}
+            style={{ backgroundColor: 'var(--color-danger-600)', color: '#fff' }}
           >
             {confirmLabel}
           </button>
@@ -77,7 +76,7 @@ function StatusBadge({ status, expiresAt }) {
 
   return (
     <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium shrink-0"
       style={{ color, backgroundColor: bg }}
     >
       {label}
@@ -89,130 +88,100 @@ function StatusBadge({ status, expiresAt }) {
 
 function PollCard({ poll, actionLoading, onToggle, onDelete }) {
   const isLoading = actionLoading === poll.id;
+  const [copied, setCopied] = useState(false);
   const timeAgo = new Date(poll.created_at).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
 
   const copyLink = () => {
     const url = `${window.location.origin}/polls/${poll.id}`;
     navigator.clipboard.writeText(url).then(
-      () => toast.success('Link copied!'),
+      () => {
+        setCopied(true);
+        toast.success('Link copied!');
+        setTimeout(() => setCopied(false), 2000);
+      },
       () => toast.error('Failed to copy link'),
     );
   };
 
   return (
     <div
-      className="rounded-xl p-5 space-y-3 transition-colors"
+      className="rounded-xl p-4 sm:p-5 transition-colors"
       style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
     >
-      {/* Top row */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <Link
-            to={`/polls/${poll.id}`}
-            className="text-sm font-semibold hover:underline truncate block"
-            style={{ color: 'var(--text)' }}
-          >
-            {poll.title}
-          </Link>
-          {poll.description && (
-            <p
-              className="mt-1 text-xs line-clamp-2"
-              style={{ color: 'var(--text-tertiary)' }}
-            >
-              {poll.description}
-            </p>
-          )}
-        </div>
+        <Link
+          to={`/polls/${poll.id}`}
+          className="text-sm font-semibold hover:underline truncate min-w-0"
+          style={{ color: 'var(--text)' }}
+        >
+          {poll.title}
+        </Link>
         <StatusBadge status={poll.status} expiresAt={poll.expires_at} />
       </div>
 
-      {/* Meta row */}
-      <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+      {poll.description && (
+        <p className="mt-1.5 text-xs line-clamp-1" style={{ color: 'var(--text-tertiary)' }}>
+          {poll.description}
+        </p>
+      )}
+
+      {/* Stats row */}
+      <div className="mt-3 flex flex-wrap items-center gap-4 text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
         <span className="inline-flex items-center gap-1">
-          <Users size={13} /> {poll.vote_count} vote{poll.vote_count !== 1 ? 's' : ''}
+          <Users size={12} />
+          <span className="font-medium tabular-nums" style={{ color: 'var(--text-secondary)' }}>{poll.vote_count}</span>
+          vote{poll.vote_count !== 1 ? 's' : ''}
         </span>
         <span className="inline-flex items-center gap-1">
-          <Clock size={13} /> {timeAgo}
+          <Clock size={12} /> {timeAgo}
         </span>
         {poll.is_public && (
           <span className="inline-flex items-center gap-1">
-            <Eye size={13} /> Public
+            <Eye size={12} /> Public
           </span>
         )}
       </div>
 
       {/* Actions */}
-      <div
-        className="flex flex-wrap items-center gap-2 pt-2"
-        style={{ borderTop: '1px solid var(--border)' }}
-      >
+      <div className="mt-3 flex flex-wrap items-center gap-1.5 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
         <Link
           to={`/polls/${poll.id}`}
-          className="cursor-pointer inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"
-          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+          className="cursor-pointer inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:bg-[var(--surface-hover)]"
+          style={{ color: 'var(--text-secondary)' }}
         >
-          <ChartBar size={13} /> View
+          <ChartBar size={12} /> View
         </Link>
         <button
           onClick={copyLink}
           disabled={isLoading}
-          className="cursor-pointer inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+          className="cursor-pointer inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ color: 'var(--text-secondary)' }}
         >
-          <LinkSimple size={13} /> Copy Link
+          {copied ? <Check size={12} weight="bold" /> : <LinkSimple size={12} />}
+          {copied ? 'Copied' : 'Share'}
         </button>
         <button
           onClick={() => onToggle(poll.id, poll.status)}
           disabled={isLoading}
-          className="cursor-pointer inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+          className="cursor-pointer inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ color: 'var(--text-secondary)' }}
         >
-          {poll.status === 'open' ? <LockSimple size={13} /> : <LockSimpleOpen size={13} />}
+          {poll.status === 'open' ? <LockSimple size={12} /> : <LockSimpleOpen size={12} />}
           {poll.status === 'open' ? 'Close' : 'Reopen'}
         </button>
         <button
           onClick={() => onDelete(poll.id)}
           disabled={isLoading}
-          className="cursor-pointer inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
-          style={{ color: 'var(--color-danger-500)', border: '1px solid var(--border)' }}
+          className="cursor-pointer inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
+          style={{ color: 'var(--color-danger-500)' }}
         >
-          <Trash size={13} /> Delete
+          <Trash size={12} /> Delete
         </button>
       </div>
-    </div>
-  );
-}
-
-/* ── Pagination ── */
-
-function Pagination({ pagination, page, onPageChange }) {
-  if (!pagination || pagination.pages <= 1) return null;
-
-  return (
-    <div className="flex items-center justify-center gap-2">
-      <button
-        onClick={() => onPageChange(page - 1)}
-        disabled={page <= 1}
-        className="cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-      >
-        Previous
-      </button>
-      <span className="text-xs tabular-nums" style={{ color: 'var(--text-tertiary)' }}>
-        {page} / {pagination.pages}
-      </span>
-      <button
-        onClick={() => onPageChange(page + 1)}
-        disabled={page >= pagination.pages}
-        className="cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-      >
-        Next
-      </button>
     </div>
   );
 }
@@ -222,12 +191,14 @@ function Pagination({ pagination, page, onPageChange }) {
 export default function Dashboard() {
   const {
     polls,
-    pagination,
-    page,
     loading,
+    loadingMore,
     error,
+    search,
+    hasMore,
     actionLoading,
-    setPage,
+    handleSearch,
+    sentinelRef,
     toggleStatus,
     deletePoll,
     retry,
@@ -244,7 +215,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-1 justify-center py-8 px-4">
-      <div className="w-full max-w-2xl space-y-6">
+      <div className="w-full max-w-2xl space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>
@@ -252,21 +223,42 @@ export default function Dashboard() {
           </h1>
           <Link
             to="/polls/new"
-            className="inline-flex items-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold tracking-wide transition-colors"
+            className="cursor-pointer inline-flex items-center gap-1.5 rounded-sm px-4 py-2 text-sm font-semibold tracking-wide transition-colors"
             style={{ backgroundColor: 'var(--color-primary-400)', color: '#0d0b09' }}
           >
             <Plus size={14} weight="bold" /> New Poll
           </Link>
         </div>
 
-        {/* Loading */}
+        {/* Search */}
+        <div className="relative">
+          <MagnifyingGlass
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: 'var(--text-tertiary)' }}
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search your polls..."
+            className="w-full rounded-md py-2.5 pl-9 pr-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-[var(--ring)]"
+            style={{
+              backgroundColor: 'var(--surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--text)',
+            }}
+          />
+        </div>
+
+        {/* Loading (initial) */}
         {loading && (
           <div className="flex items-center justify-center py-20">
             <CircleNotch size={32} className="animate-spin" style={{ color: 'var(--color-primary-400)' }} />
           </div>
         )}
 
-        {/* Error state */}
+        {/* Error */}
         {!loading && error && (
           <div
             className="rounded-xl p-10 text-center space-y-3"
@@ -284,7 +276,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty */}
         {!loading && !error && polls.length === 0 && (
           <div
             className="rounded-xl p-10 text-center space-y-3"
@@ -292,15 +284,17 @@ export default function Dashboard() {
           >
             <ChartBar size={36} style={{ color: 'var(--text-tertiary)', margin: '0 auto' }} />
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              You haven't created any polls yet.
+              {search ? 'No polls match your search.' : "You haven't created any polls yet."}
             </p>
-            <Link
-              to="/polls/new"
-              className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
-              style={{ color: 'var(--color-primary-400)' }}
-            >
-              Create your first poll <Plus size={13} />
-            </Link>
+            {!search && (
+              <Link
+                to="/polls/new"
+                className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
+                style={{ color: 'var(--color-primary-400)' }}
+              >
+                Create your first poll <Plus size={13} />
+              </Link>
+            )}
           </div>
         )}
 
@@ -316,12 +310,24 @@ export default function Dashboard() {
                 onDelete={setDeleteTarget}
               />
             ))}
-          </div>
-        )}
 
-        {/* Pagination */}
-        {!loading && !error && (
-          <Pagination pagination={pagination} page={page} onPageChange={setPage} />
+            {/* Infinite scroll sentinel */}
+            {hasMore && (
+              <div ref={sentinelRef} className="flex items-center justify-center py-4">
+                <CircleNotch
+                  size={20}
+                  className="animate-spin"
+                  style={{ color: 'var(--color-primary-400)', opacity: loadingMore ? 1 : 0 }}
+                />
+              </div>
+            )}
+
+            {!hasMore && polls.length > 10 && (
+              <p className="text-center text-xs py-2" style={{ color: 'var(--text-tertiary)' }}>
+                You've reached the end.
+              </p>
+            )}
+          </div>
         )}
 
         {/* Delete confirmation modal */}

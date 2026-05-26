@@ -11,8 +11,8 @@ export const createPoll = async (req, res, next) => {
 
 export const getMyPolls = async (req, res, next) => {
   try {
-    const { page, limit } = req.query;
-    const data = await pollService.getMyPolls(req.user.id, { page, limit });
+    const { page, limit, search } = req.query;
+    const data = await pollService.getMyPolls(req.user.id, { page, limit, search });
     res.status(200).json({ success: true, data });
   } catch (err) {
     next(err);
@@ -36,6 +36,16 @@ export const updatePoll = async (req, res, next) => {
     next(err);
   }
 };
+export const getPublicPolls = async (req, res, next) => {
+  try {
+    const { page, limit, sort, search } = req.query;
+    const data = await pollService.getPublicPolls({ page, limit, sort, search });
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const deletePoll = async (req, res, next) => {
   try {
     await pollService.deletePoll(req.params.id, req.user.id);

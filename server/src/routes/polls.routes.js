@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createPoll,
   getMyPolls,
+  getPublicPolls,
   getPollById,
   updatePoll,
   deletePoll,
@@ -14,6 +15,7 @@ const router = Router();
 
 router.post('/', requireAuth, validate(createPollSchema), createPoll);
 router.get('/me', requireAuth, getMyPolls);
+router.get('/public', getPublicPolls);
 router.get('/:id', getPollById);
 router.patch('/:id', requireAuth, validate(updatePollSchema), updatePoll);
 router.delete('/:id', requireAuth, deletePoll);
