@@ -28,22 +28,36 @@ export const insertOptions = async (client, pollId, options) => {
   return rows;
 };
 
-export const findMyPolls = async (userId, { limit, offset }) => {
+export const findMyPolls = async (userId, { limit, offset, search }) => {
+  const conditions = ['p.creator_id = $1', 'p.deleted_at IS NULL'];
+  const params = [userId];
+
+  if (search) {
+    params.push(`%${search}%`);
+    conditions.push(`(p.title ILIKE $${params.length} OR p.description ILIKE $${params.length})`);
+  }
+
+  const where = conditions.join(' AND ');
+
   const countResult = await pool.query(
-    `SELECT COUNT(*)::int AS total FROM polls WHERE creator_id = $1 AND deleted_at IS NULL`,
-    [userId],
+    `SELECT COUNT(*)::int AS total FROM polls p WHERE ${where}`,
+    params,
   );
+
+  params.push(limit, offset);
+  const limitIdx = params.length - 1;
+  const offsetIdx = params.length;
 
   const { rows } = await pool.query(
     `SELECT p.id, p.title, p.description, p.is_public, p.status, p.expires_at, p.created_at,
             COUNT(v.id)::int AS vote_count
      FROM polls p
      LEFT JOIN votes v ON v.poll_id = p.id
-     WHERE p.creator_id = $1 AND p.deleted_at IS NULL
+     WHERE ${where}
      GROUP BY p.id
      ORDER BY p.created_at DESC
-     LIMIT $2 OFFSET $3`,
-    [userId, limit, offset],
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+    params,
   );
 
   return { polls: rows, total: countResult.rows[0].total };
@@ -91,6 +105,50 @@ export const softDeletePoll = async (pollId) => {
     [pollId],
   );
   return rows[0] || null;
+};
+
+const ALLOWED_SORT = {
+  newest: 'p.created_at DESC',
+  oldest: 'p.created_at ASC',
+  most_voted: 'vote_count DESC',
+};
+
+export const findPublicPolls = async ({ limit, offset, sort, search }) => {
+  const orderBy = ALLOWED_SORT[sort] || ALLOWED_SORT.newest;
+  const conditions = ['p.is_public = true', 'p.deleted_at IS NULL'];
+  const params = [];
+
+  if (search) {
+    params.push(`%${search}%`);
+    conditions.push(`(p.title ILIKE $${params.length} OR p.description ILIKE $${params.length})`);
+  }
+
+  const where = conditions.join(' AND ');
+
+  const countResult = await pool.query(
+    `SELECT COUNT(*)::int AS total FROM polls p WHERE ${where}`,
+    params,
+  );
+
+  params.push(limit, offset);
+  const limitIdx = params.length - 1;
+  const offsetIdx = params.length;
+
+  const { rows } = await pool.query(
+    `SELECT p.id, p.title, p.description, p.status, p.expires_at, p.created_at,
+            u.username AS creator_username,
+            COUNT(v.id)::int AS vote_count
+     FROM polls p
+     JOIN users u ON u.id = p.creator_id
+     LEFT JOIN votes v ON v.poll_id = p.id
+     WHERE ${where}
+     GROUP BY p.id, u.username
+     ORDER BY ${orderBy}
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+    params,
+  );
+
+  return { polls: rows, total: countResult.rows[0].total };
 };
 
 export const getClient = () => pool.connect();

@@ -1,15 +1,19 @@
 import { useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { LinkSimple, Download, Check } from '@phosphor-icons/react';
+import { LinkSimple, Download, Check, ShareNetwork, Code, Copy } from '@phosphor-icons/react';
 import toast from 'react-hot-toast';
 
 export default function ShareQRCard({ poll }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [hovering, setHovering] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showEmbed, setShowEmbed] = useState(false);
   const cardRef = useRef(null);
 
   const pollUrl = `${window.location.origin}/polls/${poll.id}`;
+  const canNativeShare = typeof navigator.share === 'function';
+
+  const embedSnippet = `<iframe src="${pollUrl}" width="100%" height="500" style="border:none;border-radius:12px;" title="${poll.title.replace(/"/g, '&quot;')}"></iframe>`;
 
   const handleMouseMove = (e) => {
     if (!cardRef.current) return;
@@ -25,15 +29,29 @@ export default function ShareQRCard({ poll }) {
     setTilt({ x: 0, y: 0 });
   };
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(pollUrl).then(
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text).then(
       () => {
-        setCopied(true);
-        toast.success('Link copied!');
+        setCopied(label);
+        toast.success(`${label} copied!`);
         setTimeout(() => setCopied(false), 2000);
       },
-      () => toast.error('Failed to copy link'),
+      () => toast.error('Failed to copy'),
     );
+  };
+
+  const nativeShare = async () => {
+    try {
+      await navigator.share({
+        title: poll.title,
+        text: `Vote on: ${poll.title}`,
+        url: pollUrl,
+      });
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        toast.error('Share failed');
+      }
+    }
   };
 
   const downloadQR = () => {
@@ -70,7 +88,96 @@ export default function ShareQRCard({ poll }) {
         Share this poll
       </h3>
 
-      {/* 3D Card */}
+      {/* URL display */}
+      <div
+        className="flex items-center gap-2 rounded-md px-3 py-2"
+        style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+      >
+        <LinkSimple size={14} className="shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+        <span
+          className="flex-1 truncate text-xs font-mono"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          {pollUrl}
+        </span>
+        <button
+          onClick={() => copyToClipboard(pollUrl, 'Link')}
+          className="cursor-pointer shrink-0 rounded px-2 py-1 text-[11px] font-medium transition-colors hover:bg-[var(--surface-hover)]"
+          style={{ color: 'var(--color-primary-500)' }}
+        >
+          {copied === 'Link' ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => copyToClipboard(pollUrl, 'Link')}
+          className="cursor-pointer flex-1 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"
+          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+        >
+          {copied === 'Link' ? <Check size={13} weight="bold" /> : <Copy size={13} />}
+          {copied === 'Link' ? 'Copied!' : 'Copy Link'}
+        </button>
+
+        {canNativeShare && (
+          <button
+            onClick={nativeShare}
+            className="cursor-pointer flex-1 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"
+            style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+          >
+            <ShareNetwork size={13} /> Share
+          </button>
+        )}
+
+        <button
+          onClick={downloadQR}
+          className="cursor-pointer flex-1 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"
+          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+        >
+          <Download size={13} /> QR Code
+        </button>
+
+        <button
+          onClick={() => setShowEmbed((v) => !v)}
+          className="cursor-pointer flex-1 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"
+          style={{
+            color: showEmbed ? 'var(--color-primary-500)' : 'var(--text-secondary)',
+            border: `1px solid ${showEmbed ? 'var(--color-primary-500)' : 'var(--border)'}`,
+          }}
+        >
+          <Code size={13} /> Embed
+        </button>
+      </div>
+
+      {/* Embed snippet */}
+      {showEmbed && (
+        <div className="space-y-2">
+          <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+            Paste this into your website's HTML:
+          </p>
+          <div
+            className="relative rounded-md p-3"
+            style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}
+          >
+            <pre
+              className="text-[11px] font-mono whitespace-pre-wrap break-all leading-relaxed"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              {embedSnippet}
+            </pre>
+            <button
+              onClick={() => copyToClipboard(embedSnippet, 'Embed')}
+              className="cursor-pointer absolute top-2 right-2 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-[var(--surface-hover)]"
+              style={{ color: 'var(--color-primary-500)', backgroundColor: 'var(--surface)' }}
+            >
+              {copied === 'Embed' ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3D QR Card */}
       <div className="flex justify-center" style={{ perspective: '800px' }}>
         <div
           ref={cardRef}
@@ -95,7 +202,6 @@ export default function ShareQRCard({ poll }) {
             }}
           />
 
-          {/* Card content */}
           <div style={{ transform: 'translateZ(20px)' }}>
             <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/60">
               VotePulse
@@ -129,25 +235,6 @@ export default function ShareQRCard({ poll }) {
             Scan to vote
           </p>
         </div>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={copyLink}
-          className="cursor-pointer flex-1 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"
-          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-        >
-          {copied ? <Check size={13} weight="bold" /> : <LinkSimple size={13} />}
-          {copied ? 'Copied!' : 'Copy Link'}
-        </button>
-        <button
-          onClick={downloadQR}
-          className="cursor-pointer flex-1 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"
-          style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-        >
-          <Download size={13} /> Download QR
-        </button>
       </div>
     </div>
   );

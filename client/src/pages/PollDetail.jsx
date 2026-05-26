@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { CircleNotch, WarningCircle, CheckCircle, ArrowLeft } from '@phosphor-icons/react';
 import usePollDetail from '../hooks/usePollDetail.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -8,6 +8,9 @@ import ShareQRCard from '../components/poll/ShareQRCard.jsx';
 
 export default function PollDetail() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const canGoBack = location.key !== 'default';
   const {
     poll,
     results,
@@ -54,13 +57,13 @@ export default function PollDetail() {
   return (
     <div className="flex flex-1 justify-center py-8 px-4">
       <div className="w-full max-w-2xl space-y-6">
-        <Link
-          to={user ? '/dashboard' : '/'}
+        <button
+          onClick={() => canGoBack ? navigate(-1) : navigate(user ? '/dashboard' : '/')}
           className="cursor-pointer inline-flex items-center gap-1.5 text-xs font-medium transition-colors hover:underline"
-          style={{ color: 'var(--text-tertiary)' }}
+          style={{ color: 'var(--text-tertiary)', background: 'none', border: 'none', padding: 0 }}
         >
-          <ArrowLeft size={13} /> {user ? 'Back to Dashboard' : 'Back to Home'}
-        </Link>
+          <ArrowLeft size={13} /> Back
+        </button>
 
         <PollHeader poll={poll} isOwner={isOwner} isClosed={isClosed} isExpired={isExpired} />
 

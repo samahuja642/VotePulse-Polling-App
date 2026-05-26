@@ -9,6 +9,7 @@ import {
   findOptionsByPollId,
   updatePollStatus,
   softDeletePoll,
+  findPublicPolls,
 } from '../db/queries/poll.queries.js';
 
 export const createPoll = async (creatorId, data) => {
@@ -42,7 +43,8 @@ export const createPoll = async (creatorId, data) => {
 
 export const getMyPolls = async (userId, query) => {
   const { page, limit, offset } = parsePagination(query);
-  const { polls, total } = await findMyPolls(userId, { limit, offset });
+  const search = query.search?.trim() || null;
+  const { polls, total } = await findMyPolls(userId, { limit, offset, search });
 
   return { polls, pagination: buildPagination({ page, limit, total }) };
 };
@@ -85,4 +87,14 @@ export const deletePoll = async (pollId, userId) => {
   }
 
   await softDeletePoll(pollId);
+};
+
+export const getPublicPolls = async (query) => {
+  const { page, limit, offset } = parsePagination(query);
+  const sort = ['newest', 'oldest', 'most_voted'].includes(query.sort) ? query.sort : 'newest';
+  const search = query.search?.trim() || null;
+
+  const { polls, total } = await findPublicPolls({ limit, offset, sort, search });
+
+  return { polls, pagination: buildPagination({ page, limit, total }) };
 };
