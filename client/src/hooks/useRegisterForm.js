@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { registerSchema, registerBaseSchema } from '../lib/validators.js';
 import { getFieldMeta } from '../lib/formUtils.js';
 import api from '../lib/api.js';
+import { extractApiError } from '../lib/apiError.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const meta = getFieldMeta(registerBaseSchema);
@@ -22,9 +23,8 @@ export default function useRegisterForm() {
       toast.success('Account created!');
       navigate('/dashboard');
     } catch (err) {
-      const message =
-        err.response?.data?.error?.message || 'Something went wrong';
-      if (err.response?.status === 409) {
+      const { message, status } = extractApiError(err);
+      if (status === 409) {
         form.setError('root', { message });
       } else {
         toast.error(message);

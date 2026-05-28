@@ -1,17 +1,16 @@
 import { Link } from 'react-router-dom';
 import {
-  CircleNotch,
   MagnifyingGlass,
   SortAscending,
   Users,
   Clock,
-  ChartBar,
   User,
   WarningCircle,
   ArrowClockwise,
   Compass,
 } from '@phosphor-icons/react';
 import useExplore from '../hooks/useExplore.js';
+import { ExploreGridSkeleton } from '../components/ui/Skeleton.jsx';
 
 /* ── Sort Options ── */
 
@@ -212,11 +211,7 @@ export default function Explore() {
         </div>
 
         {/* Loading */}
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <CircleNotch size={32} className="animate-spin" style={{ color: 'var(--color-primary-400)' }} />
-          </div>
-        )}
+        {loading && <ExploreGridSkeleton />}
 
         {/* Error */}
         {!loading && error && (

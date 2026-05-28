@@ -24,4 +24,5 @@ export const env = {
   clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
   cookieSecret: required('COOKIE_SECRET'),
   isDev: (process.env.NODE_ENV ?? 'development') === 'development',
+  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY || '',
 };

@@ -1,4 +1,5 @@
 import { AppError } from '../utils/AppError.js';
+import { sanitize, sanitizeArray } from '../utils/sanitize.js';
 import { parsePagination, buildPagination } from '../utils/pagination.js';
 import {
   getClient,
@@ -20,15 +21,15 @@ export const createPoll = async (creatorId, data) => {
 
     const poll = await insertPoll(client, {
       creatorId,
-      title: data.title,
-      description: data.description,
+      title: sanitize(data.title),
+      description: sanitize(data.description),
       isPublic: data.is_public,
       multiVote: data.multi_vote,
       showResults: data.show_results,
       expiresAt: data.expires_at,
     });
 
-    const options = await insertOptions(client, poll.id, data.options);
+    const options = await insertOptions(client, poll.id, sanitizeArray(data.options));
 
     await client.query('COMMIT');
 
@@ -43,7 +44,7 @@ export const createPoll = async (creatorId, data) => {
 
 export const getMyPolls = async (userId, query) => {
   const { page, limit, offset } = parsePagination(query);
-  const search = query.search?.trim() || null;
+  const search = query.search?.trim() ? sanitize(query.search.trim()) : null;
   const { polls, total } = await findMyPolls(userId, { limit, offset, search });
 
   return { polls, pagination: buildPagination({ page, limit, total }) };
@@ -92,7 +93,7 @@ export const deletePoll = async (pollId, userId) => {
 export const getPublicPolls = async (query) => {
   const { page, limit, offset } = parsePagination(query);
   const sort = ['newest', 'oldest', 'most_voted'].includes(query.sort) ? query.sort : 'newest';
-  const search = query.search?.trim() || null;
+  const search = query.search?.trim() ? sanitize(query.search.trim()) : null;
 
   const { polls, total } = await findPublicPolls({ limit, offset, sort, search });
 

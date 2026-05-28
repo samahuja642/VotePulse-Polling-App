@@ -11,7 +11,25 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <App />
-        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: 'var(--surface)',
+              color: 'var(--text)',
+              border: '1px solid var(--border)',
+              fontSize: '0.84rem',
+              borderRadius: '0.5rem',
+            },
+            success: {
+              iconTheme: { primary: 'var(--color-success-500)', secondary: 'var(--surface)' },
+            },
+            error: {
+              iconTheme: { primary: 'var(--color-danger-500)', secondary: 'var(--surface)' },
+            },
+          }}
+        />
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import api from '../lib/api.js';
+import { extractApiError } from '../lib/apiError.js';
 
 export default function useExplore() {
   const [polls, setPolls] = useState([]);
@@ -22,7 +23,7 @@ export default function useExplore() {
       setPolls(res.data.data.polls);
       setPagination(res.data.data.pagination);
     } catch (err) {
-      const message = err.response?.data?.error?.message || 'Failed to load polls';
+      const { message } = extractApiError(err);
       setError(message);
     } finally {
       setLoading(false);
