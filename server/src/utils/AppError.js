@@ -1,3 +1,5 @@
+import { ErrorCode } from './errorCodes.js';
+
 export class AppError extends Error {
   constructor(message, statusCode, code) {
     super(message);
@@ -6,22 +8,22 @@ export class AppError extends Error {
   }
 
   static badRequest(message = 'Bad request') {
-    return new AppError(message, 400, 'BAD_REQUEST');
+    return new AppError(message, 400, ErrorCode.BAD_REQUEST);
   }
 
   static unauthorized(message = 'Unauthorized') {
-    return new AppError(message, 401, 'UNAUTHORIZED');
+    return new AppError(message, 401, ErrorCode.UNAUTHORIZED);
   }
 
   static forbidden(message = 'Forbidden') {
-    return new AppError(message, 403, 'FORBIDDEN');
+    return new AppError(message, 403, ErrorCode.FORBIDDEN);
   }
 
   static notFound(message = 'Not found') {
-    return new AppError(message, 404, 'NOT_FOUND');
+    return new AppError(message, 404, ErrorCode.NOT_FOUND);
   }
 
   static conflict(message = 'Conflict') {
-    return new AppError(message, 409, 'CONFLICT');
+    return new AppError(message, 409, ErrorCode.CONFLICT);
   }
 }

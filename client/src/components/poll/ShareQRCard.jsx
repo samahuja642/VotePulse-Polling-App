@@ -110,7 +110,7 @@ export default function ShareQRCard({ poll }) {
       </div>
 
       {/* Action buttons */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
         <button
           onClick={() => copyToClipboard(pollUrl, 'Link')}
           className="cursor-pointer flex-1 inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors hover:bg-[var(--surface-hover)]"

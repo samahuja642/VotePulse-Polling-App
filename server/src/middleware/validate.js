@@ -1,3 +1,5 @@
+import { ErrorCode } from '../utils/errorCodes.js';
+
 export const validate = (schema) => (req, res, next) => {
   const result = schema.safeParse(req.body);
 
@@ -11,7 +13,7 @@ export const validate = (schema) => (req, res, next) => {
       success: false,
       error: {
         message: 'Validation failed',
-        code: 'VALIDATION_ERROR',
+        code: ErrorCode.VALIDATION_ERROR,
         details: errors,
       },
     });

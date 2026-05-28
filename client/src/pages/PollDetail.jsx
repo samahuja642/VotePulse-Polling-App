@@ -1,10 +1,11 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { CircleNotch, WarningCircle, CheckCircle, ArrowLeft } from '@phosphor-icons/react';
+import { WarningCircle, CheckCircle, ArrowLeft } from '@phosphor-icons/react';
 import usePollDetail from '../hooks/usePollDetail.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import PollHeader from '../components/poll/PollHeader.jsx';
 import PollOptions from '../components/poll/PollOptions.jsx';
 import ShareQRCard from '../components/poll/ShareQRCard.jsx';
+import { PollDetailSkeleton } from '../components/ui/Skeleton.jsx';
 
 export default function PollDetail() {
   const { user } = useAuth();
@@ -31,8 +32,10 @@ export default function PollDetail() {
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center py-20">
-        <CircleNotch size={32} className="animate-spin" style={{ color: 'var(--color-primary-400)' }} />
+      <div className="flex flex-1 justify-center py-8 px-4">
+        <div className="w-full max-w-2xl">
+          <PollDetailSkeleton />
+        </div>
       </div>
     );
   }

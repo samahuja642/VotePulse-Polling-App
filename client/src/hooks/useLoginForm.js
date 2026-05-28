@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { loginSchema } from '../lib/validators.js';
 import { getFieldMeta } from '../lib/formUtils.js';
 import api from '../lib/api.js';
+import { extractApiError } from '../lib/apiError.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const meta = getFieldMeta(loginSchema);
@@ -22,9 +23,8 @@ export default function useLoginForm() {
       toast.success('Welcome back!');
       navigate('/dashboard');
     } catch (err) {
-      const message =
-        err.response?.data?.error?.message || 'Something went wrong';
-      if (err.response?.status === 401) {
+      const { message, status } = extractApiError(err);
+      if (status === 401) {
         form.setError('root', { message });
       } else {
         toast.error(message);

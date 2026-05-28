@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
+import { sanitize } from '../utils/sanitize.js';
 import { findUserByEmailOrUsername, findUserByEmail, findUserById, createUser } from '../db/queries/auth.queries.js';
 
 const BCRYPT_ROUNDS = 12;
@@ -88,13 +89,15 @@ export const loginUser = async ({ email, password }) => {
 };
 
 export const registerUser = async ({ username, email, password }) => {
-  const existing = await findUserByEmailOrUsername(email, username);
+  const sanitizedUsername = sanitize(username);
+
+  const existing = await findUserByEmailOrUsername(email, sanitizedUsername);
   if (existing) {
     throw AppError.conflict('Email or username already taken');
   }
 
   const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  const user = await createUser(username, email, hashedPassword);
+  const user = await createUser(sanitizedUsername, email, hashedPassword);
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);

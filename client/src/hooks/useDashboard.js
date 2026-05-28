@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import api from '../lib/api.js';
+import { extractApiError } from '../lib/apiError.js';
 
 export default function useDashboard() {
   const [polls, setPolls] = useState([]);
@@ -32,7 +33,7 @@ export default function useDashboard() {
       setHasMore(pagination.page < pagination.pages);
       setPage(p);
     } catch (err) {
-      const message = err.response?.data?.error?.message || 'Failed to load your polls';
+      const { message } = extractApiError(err);
       setError(message);
     } finally {
       setLoading(false);
@@ -91,7 +92,7 @@ export default function useDashboard() {
       );
       toast.success(`Poll ${newStatus === 'closed' ? 'closed' : 'reopened'}`);
     } catch (err) {
-      const message = err.response?.data?.error?.message || 'Failed to update poll';
+      const { message } = extractApiError(err);
       toast.error(message);
     } finally {
       setActionLoading(null);
@@ -105,7 +106,7 @@ export default function useDashboard() {
       setPolls((prev) => prev.filter((p) => p.id !== pollId));
       toast.success('Poll deleted');
     } catch (err) {
-      const message = err.response?.data?.error?.message || 'Failed to delete poll';
+      const { message } = extractApiError(err);
       toast.error(message);
     } finally {
       setActionLoading(null);

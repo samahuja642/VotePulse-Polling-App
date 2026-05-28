@@ -6,6 +6,7 @@ import DateTimePicker from '../components/ui/DateTimePicker.jsx';
 import AppendReorderList from '../components/ui/AppendReorderList.jsx';
 import Button from '../components/ui/Button.jsx';
 import FormError from '../components/ui/FormError.jsx';
+import Turnstile from '../components/ui/Turnstile.jsx';
 
 function FormSection({ label, children }) {
   return (
@@ -22,7 +23,7 @@ function FormSection({ label, children }) {
 }
 
 export default function CreatePoll() {
-  const { form, fieldArray, handleReorder, onSubmit, meta } = useCreatePollForm();
+  const { form, fieldArray, handleReorder, onSubmit, meta, setCaptchaToken, captchaRef } = useCreatePollForm();
   const { register, formState: { errors, isSubmitting } } = form;
   const { fields, append, remove } = fieldArray;
 
@@ -112,6 +113,8 @@ export default function CreatePoll() {
               {...register('expires_at')}
             />
           </FormSection>
+
+          <Turnstile ref={captchaRef} onToken={setCaptchaToken} />
 
           <Button type="submit" loading={isSubmitting} loadingText="Creating…">
             Create poll

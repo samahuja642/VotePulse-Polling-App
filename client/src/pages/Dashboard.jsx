@@ -19,6 +19,7 @@ import {
   Check,
 } from '@phosphor-icons/react';
 import useDashboard from '../hooks/useDashboard.js';
+import { DashboardSkeleton } from '../components/ui/Skeleton.jsx';
 
 /* ── Confirmation Modal ── */
 
@@ -252,11 +253,7 @@ export default function Dashboard() {
         </div>
 
         {/* Loading (initial) */}
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <CircleNotch size={32} className="animate-spin" style={{ color: 'var(--color-primary-400)' }} />
-          </div>
-        )}
+        {loading && <DashboardSkeleton />}
 
         {/* Error */}
         {!loading && error && (

@@ -1,5 +1,8 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { env } from './env.js';
+import { extractApiError } from './apiError.js';
+import { ErrorCode } from './errorCodes.js';
 
 let accessToken = null;
 let onSessionExpired = null;
@@ -58,6 +61,14 @@ api.interceptors.response.use(
         onSessionExpired?.();
         return Promise.reject(error);
       }
+    }
+
+    // Auto-toast for network errors and rate limiting — hooks don't need to handle these
+    const { code, message } = extractApiError(error);
+    if (code === ErrorCode.NETWORK_ERROR || code === ErrorCode.TIMEOUT) {
+      toast.error(message, { id: code });
+    } else if (code === ErrorCode.RATE_LIMITED) {
+      toast.error(message, { id: ErrorCode.RATE_LIMITED });
     }
 
     return Promise.reject(error);

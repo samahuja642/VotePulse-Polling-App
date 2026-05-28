@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../lib/api.js';
+import { extractApiError } from '../lib/apiError.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { connectSocket } from '../lib/socket.js';
 import { getGuestToken } from '../lib/guestToken.js';
@@ -63,7 +64,7 @@ export default function usePollDetail() {
             : Promise.resolve(),
         ]);
       } catch (err) {
-        const message = err.response?.data?.error?.message || 'Failed to load poll';
+        const { message } = extractApiError(err);
         setError(message);
       } finally {
         setLoading(false);
@@ -127,7 +128,7 @@ export default function usePollDetail() {
       setSelected([]);
       toast.success('Vote cast!');
     } catch (err) {
-      const message = err.response?.data?.error?.message || 'Failed to cast vote';
+      const { message } = extractApiError(err);
       toast.error(message);
     } finally {
       setVoting(false);
