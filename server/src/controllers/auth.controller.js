@@ -5,7 +5,7 @@ const setRefreshCookie = (res, token) => {
   res.cookie('refreshToken', token, {
     httpOnly: true,
     secure: !env.isDev,
-    sameSite: 'strict',
+    sameSite: env.isDev ? 'strict' : 'none', // 'none' required for cross-origin cookies in prod
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
@@ -15,7 +15,7 @@ const clearRefreshCookie = (res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: !env.isDev,
-    sameSite: 'strict',
+    sameSite: env.isDev ? 'strict' : 'none',
     path: '/',
   });
 };

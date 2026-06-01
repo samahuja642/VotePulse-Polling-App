@@ -13,6 +13,12 @@ const required = (key) => {
   return value;
 };
 
+const parseOrigins = (raw) => {
+  if (!raw) return 'http://localhost:5173';
+  const origins = raw.split(',').map((o) => o.trim()).filter(Boolean);
+  return origins.length === 1 ? origins[0] : origins;
+};
+
 export const env = {
   port: parseInt(process.env.PORT ?? '3001', 10),
   nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -21,7 +27,7 @@ export const env = {
   jwtRefreshSecret: required('JWT_REFRESH_SECRET'),
   jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN ?? '15m',
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
-  clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
+  clientOrigin: parseOrigins(process.env.CLIENT_ORIGIN),
   cookieSecret: required('COOKIE_SECRET'),
   isDev: (process.env.NODE_ENV ?? 'development') === 'development',
   turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY || '',

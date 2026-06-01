@@ -3,6 +3,8 @@ import { env } from './env.js';
 
 const pool = new pg.Pool({
   connectionString: env.databaseUrl,
+  // Railway / Render PostgreSQL requires SSL in production
+  ...(!env.isDev && { ssl: { rejectUnauthorized: false } }),
 });
 
 export const connectDB = async () => {
